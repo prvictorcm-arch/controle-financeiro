@@ -303,23 +303,7 @@
 
     <!-- Configurações -->
     <div class="page" id="page-configuracoes">
-      <div id="firebase-config-section">
-        <div class="config-notice">
-          <strong>⚙️ Configurar Firebase</strong><br/>
-          Para usar o app com seus dados reais, configure seu Firebase:<br/>
-          1. Crie um projeto em <a href="https://console.firebase.google.com" target="_blank" style="color:inherit">console.firebase.google.com</a><br/>
-          2. Ative <strong>Authentication (Email/Senha)</strong> e <strong>Firestore Database</strong><br/>
-          3. Copie as credenciais do seu projeto e cole abaixo
-        </div>
-        <div class="settings-section">
-          <div class="settings-title">Credenciais Firebase</div>
-          <div class="form-group"><label class="form-label">API Key</label><input class="form-input" id="fb-apikey" placeholder="AIza..." /></div>
-          <div class="form-group"><label class="form-label">Auth Domain</label><input class="form-input" id="fb-authdomain" placeholder="projeto.firebaseapp.com" /></div>
-          <div class="form-group"><label class="form-label">Project ID</label><input class="form-input" id="fb-projectid" placeholder="meu-projeto" /></div>
-          <button class="btn-primary" onclick="saveFirebaseConfig()" style="margin-top:8px">Salvar e conectar</button>
-          <div id="fb-status" style="font-size:13px;margin-top:8px;color:var(--text2)"></div>
-        </div>
-      </div>
+      <div id="firebase-config-section" style="display:none"></div>
       <div class="settings-section">
         <div class="settings-title">Categorias de despesa</div>
         <div class="cat-list" id="cat-despesa-list"></div>
@@ -684,8 +668,12 @@ window.saveLancamento = async function() {
   const obs = document.getElementById('m-obs').value.trim();
   if (!desc || !valor || !data) { alert('Preencha descrição, valor e data.'); return; }
   const payload = { uid: currentUser.uid, tipo: currentTipo, descricao: desc, valor, data, categoria: cat, obs, criadoEm: new Date().toISOString() };
-  await addDoc(collection(db, 'lancamentos'), payload);
-  closeModal();
+  try {
+    await addDoc(collection(db, 'lancamentos'), payload);
+    closeModal();
+  } catch(e) {
+    alert('Erro ao salvar: ' + e.message + '\n\nVerifique as regras do Firestore no console do Firebase.');
+  }
 };
 
 // ── Gráficos ──
