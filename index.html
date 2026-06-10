@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Minhas Finanças</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+  <style>
+    :root {
+      --bg: #f7f7f5;
+      --surface: #ffffff;
+      --surface2: #f2f2ef;
+      --border: rgba(0,0,0,0.08);
+      --border-strong: rgba(0,0,0,0.15);
+      --text: #1a1a18;
+      --text2: #6b6b66;
+      --text3: #a3a39e;
+      --green: #3b6d11;
+      --green-bg: #eaf3de;
+      --red: #a32d2d;
+      --red-bg: #fcebeb;
+      --blue: #185fa5;
+      --blue-bg: #e6f1fb;
+      --amber: #854f0b;
+      --amber-bg: #faeeda;
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1a1a18;
+        --surface: #242422;
+        --surface2: #2e2e2b;
+        --border: rgba(255,255,255,0.08);
+        --border-strong: rgba(255,255,255,0.15);
+        --text: #ededea;
+        --text2: #a3a39e;
+        --text3: #6b6b66;
+        --green: #97c459;
+        --green-bg: #27500a;
+        --red: #f09595;
+        --red-bg: #501313;
+        --blue: #85b7eb;
+        --blue-bg: #0c447c;
+        --amber: #ef9f27;
+        --amber-bg: #633806;
+      }
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 15px; }
+
+    /* Auth Screen */
+    #auth-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 1rem; }
+    .auth-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 2.5rem 2rem; width: 100%; max-width: 380px; }
+    .auth-logo { font-size: 22px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 0.5rem; }
+    .auth-sub { font-size: 14px; color: var(--text2); margin-bottom: 2rem; }
+    .auth-tabs { display: flex; border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 3px; margin-bottom: 1.5rem; gap: 3px; }
+    .auth-tab { flex: 1; padding: 7px; text-align: center; font-size: 13px; border-radius: 6px; cursor: pointer; color: var(--text2); }
+    .auth-tab.active { background: var(--surface2); color: var(--text); font-weight: 500; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; font-size: 13px; color: var(--text2); margin-bottom: 5px; }
+    .form-group input { width: 100%; padding: 9px 12px; border: 0.5px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 14px; background: var(--surface); color: var(--text); outline: none; transition: border-color .15s; }
+    .form-group input:focus { border-color: var(--blue); }
+    .btn-primary { width: 100%; padding: 10px; background: var(--text); color: var(--bg); border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; cursor: pointer; transition: opacity .15s; }
+    .btn-primary:hover { opacity: 0.85; }
+    .auth-error { font-size: 13px; color: var(--red); margin-top: 0.75rem; text-align: center; }
+
+    /* App Layout */
+    #app { display: none; }
+    .topbar { background: var(--surface); border-bottom: 0.5px solid var(--border); padding: 0 1.5rem; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    .topbar-brand { font-size: 16px; font-weight: 600; letter-spacing: -0.3px; }
+    .topbar-actions { display: flex; align-items: center; gap: 8px; }
+    .user-chip { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text2); }
+    .btn-logout { background: none; border: 0.5px solid var(--border-strong); border-radius: var(--radius-sm); padding: 6px 10px; font-size: 13px; cursor: pointer; color: var(--text2); }
+    .btn-logout:hover { background: var(--surface2); }
+
+    /* Navigation */
+    .nav-tabs { background: var(--surface); border-bottom: 0.5px solid var(--border); display: flex; padding: 0 1.5rem; gap: 4px; }
+    .nav-tab { padding: 12px 14px; font-size: 13px; color: var(--text2); cursor: pointer; border-bottom: 2px solid transparent; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+    .nav-tab.active { color: var(--text); border-bottom-color: var(--text); }
+    .nav-tab i { font-size: 16px; }
+
+    /* Main Content */
+    .main { max-width: 1000px; margin: 0 auto; padding: 1.5rem; }
+
+    /* Pages */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* Summary Cards */
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 1.5rem; }
+    .card { background: var(--surface2); border-radius: var(--radius-sm); padding: 1rem; }
+    .card-label { font-size: 12px; color: var(--text2); margin-bottom: 6px; display: flex; align-items: center; gap: 4px; }
+    .card-value { font-size: 22px; font-weight: 500; letter-spacing: -0.5px; }
+    .card-value.positive { color: var(--green); }
+    .card-value.negative { color: var(--red); }
+    .card-value.neutral { color: var(--blue); }
+
+    /* Filters */
+    .filters { display: flex; gap: 8px; margin-bottom: 1.25rem; flex-wrap: wrap; align-items: center; }
+    .filter-select { padding: 7px 10px; border: 0.5px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 13px; background: var(--surface); color: var(--text); cursor: pointer; outline: none; }
+    .btn-add { margin-left: auto; display: flex; align-items: center; gap: 5px; padding: 8px 14px; background: var(--text); color: var(--bg); border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+    .btn-add:hover { opacity: 0.85; }
+
+    /* Table */
+    .table-wrap { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    thead th { padding: 10px 14px; text-align: left; font-size: 12px; font-weight: 500; color: var(--text2); border-bottom: 0.5px solid var(--border); background: var(--surface2); }
+    tbody tr { border-bottom: 0.5px solid var(--border); transition: background .1s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--surface2); }
+    tbody td { padding: 10px 14px; color: var(--text); }
+    .td-valor.receita { color: var(--green); font-weight: 500; }
+    .td-valor.despesa { color: var(--red); font-weight: 500; }
+    .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 99px; font-weight: 500; }
+    .badge-receita { background: var(--green-bg); color: var(--green); }
+    .badge-despesa { background: var(--red-bg); color: var(--red); }
+    .btn-icon { background: none; border: none; cursor: pointer; padding: 4px; color: var(--text3); border-radius: 4px; }
+    .btn-icon:hover { color: var(--red); background: var(--red-bg); }
+    .empty-state { padding: 3rem 1rem; text-align: center; color: var(--text2); }
+    .empty-state i { font-size: 36px; display: block; margin-bottom: 0.75rem; color: var(--text3); }
+
+    /* Modal */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+    .modal { background: var(--surface); border-radius: var(--radius); width: 100%; max-width: 440px; padding: 1.5rem; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .modal-title { font-size: 16px; font-weight: 500; }
+    .btn-close { background: none; border: none; cursor: pointer; color: var(--text2); font-size: 18px; padding: 2px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-label { font-size: 13px; color: var(--text2); margin-bottom: 5px; display: block; }
+    .form-input { width: 100%; padding: 9px 12px; border: 0.5px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 14px; background: var(--surface); color: var(--text); outline: none; }
+    .form-input:focus { border-color: var(--blue); }
+    .type-toggle { display: flex; gap: 8px; }
+    .type-btn { flex: 1; padding: 9px; border: 0.5px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 13px; cursor: pointer; background: var(--surface); color: var(--text2); text-align: center; font-weight: 500; }
+    .type-btn.active-receita { background: var(--green-bg); border-color: var(--green); color: var(--green); }
+    .type-btn.active-despesa { background: var(--red-bg); border-color: var(--red); color: var(--red); }
+    .modal-footer { display: flex; gap: 8px; margin-top: 1.5rem; }
+    .btn-cancel { flex: 1; padding: 10px; border: 0.5px solid var(--border-strong); border-radius: var(--radius-sm); background: none; font-size: 14px; cursor: pointer; color: var(--text2); }
+    .btn-save { flex: 2; padding: 10px; background: var(--text); color: var(--bg); border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; cursor: pointer; }
+    .btn-save:hover { opacity: 0.85; }
+
+    /* Charts page */
+    .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; }
+    .chart-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1.25rem; }
+    .chart-title { font-size: 13px; font-weight: 500; color: var(--text2); margin-bottom: 1rem; }
+    canvas { max-width: 100%; }
+
+    /* Settings */
+    .settings-section { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem; }
+    .settings-title { font-size: 14px; font-weight: 500; margin-bottom: 1rem; }
+    .settings-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 0.5px solid var(--border); }
+    .settings-row:last-child { border-bottom: none; }
+    .settings-row-label { font-size: 14px; }
+    .settings-row-sub { font-size: 12px; color: var(--text2); }
+    .btn-danger { padding: 8px 14px; background: var(--red-bg); color: var(--red); border: none; border-radius: var(--radius-sm); font-size: 13px; cursor: pointer; font-weight: 500; }
+    .cat-list { display: flex; flex-wrap: wrap; gap: 6px; }
+    .cat-tag { display: flex; align-items: center; gap: 4px; background: var(--surface2); border: 0.5px solid var(--border); border-radius: 99px; padding: 4px 10px; font-size: 13px; }
+    .cat-tag button { background: none; border: none; cursor: pointer; color: var(--text3); font-size: 14px; padding: 0; line-height: 1; }
+    .cat-tag button:hover { color: var(--red); }
+    .inline-add { display: flex; gap: 6px; margin-top: 10px; }
+    .inline-add input { flex: 1; padding: 7px 10px; border: 0.5px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 13px; background: var(--surface); color: var(--text); outline: none; }
+    .btn-sm { padding: 7px 12px; background: var(--text); color: var(--bg); border: none; border-radius: var(--radius-sm); font-size: 13px; cursor: pointer; }
+
+    /* Loading */
+    .loading { display: flex; align-items: center; justify-content: center; padding: 3rem; color: var(--text2); gap: 8px; font-size: 14px; }
+
+    /* Firebase config notice */
+    .config-notice { background: var(--amber-bg); border: 0.5px solid var(--amber); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 1.5rem; font-size: 13px; color: var(--amber); line-height: 1.6; }
+    .config-notice strong { font-weight: 600; }
+    .config-notice code { background: rgba(0,0,0,0.1); padding: 1px 5px; border-radius: 4px; font-family: monospace; font-size: 12px; }
+
+    @media (max-width: 600px) {
+      .topbar { padding: 0 1rem; }
+      .main { padding: 1rem; }
+      .form-row { grid-template-columns: 1fr; }
+      .cards-grid { grid-template-columns: 1fr 1fr; }
+      thead th:nth-child(3), tbody td:nth-child(3) { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Auth Screen -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">💰 Minhas Finanças</div>
+    <div class="auth-sub">Controle financeiro pessoal</div>
+    <div class="auth-tabs">
+      <div class="auth-tab active" onclick="switchAuthTab('login')">Entrar</div>
+      <div class="auth-tab" onclick="switchAuthTab('signup')">Criar conta</div>
+    </div>
+    <div id="auth-form">
+      <div class="form-group">
+        <label>E-mail</label>
+        <input type="email" id="auth-email" placeholder="seu@email.com" />
+      </div>
+      <div class="form-group">
+        <label>Senha</label>
+        <input type="password" id="auth-password" placeholder="••••••••" />
+      </div>
+      <div class="form-group" id="name-group" style="display:none">
+        <label>Nome</label>
+        <input type="text" id="auth-name" placeholder="Seu nome" />
+      </div>
+      <button class="btn-primary" onclick="handleAuth()">Entrar</button>
+      <div class="auth-error" id="auth-error"></div>
+    </div>
+  </div>
+</div>
+
+<!-- App -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-brand">💰 Minhas Finanças</div>
+    <div class="topbar-actions">
+      <div class="user-chip"><i class="ti ti-user" aria-hidden="true"></i><span id="user-display"></span></div>
+      <button class="btn-logout" onclick="signOut()"><i class="ti ti-logout" style="font-size:14px"></i></button>
+    </div>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" onclick="showPage('resumo')" data-page="resumo"><i class="ti ti-home"></i>Resumo</div>
+    <div class="nav-tab" onclick="showPage('lancamentos')" data-page="lancamentos"><i class="ti ti-list"></i>Lançamentos</div>
+    <div class="nav-tab" onclick="showPage('graficos')" data-page="graficos"><i class="ti ti-chart-pie"></i>Gráficos</div>
+    <div class="nav-tab" onclick="showPage('configuracoes')" data-page="configuracoes"><i class="ti ti-settings"></i>Config</div>
+  </div>
+  <div class="main">
+
+    <!-- Resumo -->
+    <div class="page active" id="page-resumo">
+      <div class="filters" style="margin-bottom:1.25rem">
+        <select class="filter-select" id="resumo-mes" onchange="renderResumo()"></select>
+        <select class="filter-select" id="resumo-ano" onchange="renderResumo()"></select>
+      </div>
+      <div class="cards-grid" id="resumo-cards"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-top:1.5rem" id="resumo-bottom">
+        <div class="chart-card">
+          <div class="chart-title">Despesas por categoria</div>
+          <canvas id="chart-cat" height="200"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Receitas vs Despesas</div>
+          <canvas id="chart-balance" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lançamentos -->
+    <div class="page" id="page-lancamentos">
+      <div class="filters">
+        <select class="filter-select" id="filter-mes" onchange="renderLancamentos()"></select>
+        <select class="filter-select" id="filter-ano" onchange="renderLancamentos()"></select>
+        <select class="filter-select" id="filter-tipo" onchange="renderLancamentos()">
+          <option value="">Todos</option>
+          <option value="receita">Receitas</option>
+          <option value="despesa">Despesas</option>
+        </select>
+        <select class="filter-select" id="filter-cat" onchange="renderLancamentos()">
+          <option value="">Todas categorias</option>
+        </select>
+        <button class="btn-add" onclick="openModal()"><i class="ti ti-plus" style="font-size:15px"></i>Novo lançamento</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Descrição</th>
+              <th>Categoria</th>
+              <th>Tipo</th>
+              <th style="text-align:right">Valor</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="lancamentos-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="page" id="page-graficos">
+      <div class="filters" style="margin-bottom:1.25rem">
+        <select class="filter-select" id="graf-ano" onchange="renderGraficos()"></select>
+      </div>
+      <div class="charts-grid">
+        <div class="chart-card">
+          <div class="chart-title">Evolução mensal — receitas vs despesas</div>
+          <canvas id="chart-evolucao" height="220"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Saldo acumulado no ano</div>
+          <canvas id="chart-saldo" height="220"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Despesas por categoria (ano)</div>
+          <canvas id="chart-donut" height="220"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Top 5 maiores gastos</div>
+          <canvas id="chart-top5" height="220"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Configurações -->
+    <div class="page" id="page-configuracoes">
+      <div id="firebase-config-section">
+        <div class="config-notice">
+          <strong>⚙️ Configurar Firebase</strong><br/>
+          Para usar o app com seus dados reais, configure seu Firebase:<br/>
+          1. Crie um projeto em <a href="https://console.firebase.google.com" target="_blank" style="color:inherit">console.firebase.google.com</a><br/>
+          2. Ative <strong>Authentication (Email/Senha)</strong> e <strong>Firestore Database</strong><br/>
+          3. Copie as credenciais do seu projeto e cole abaixo
+        </div>
+        <div class="settings-section">
+          <div class="settings-title">Credenciais Firebase</div>
+          <div class="form-group"><label class="form-label">API Key</label><input class="form-input" id="fb-apikey" placeholder="AIza..." /></div>
+          <div class="form-group"><label class="form-label">Auth Domain</label><input class="form-input" id="fb-authdomain" placeholder="projeto.firebaseapp.com" /></div>
+          <div class="form-group"><label class="form-label">Project ID</label><input class="form-input" id="fb-projectid" placeholder="meu-projeto" /></div>
+          <button class="btn-primary" onclick="saveFirebaseConfig()" style="margin-top:8px">Salvar e conectar</button>
+          <div id="fb-status" style="font-size:13px;margin-top:8px;color:var(--text2)"></div>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-title">Categorias de despesa</div>
+        <div class="cat-list" id="cat-despesa-list"></div>
+        <div class="inline-add">
+          <input id="new-cat-despesa" placeholder="Nova categoria..." />
+          <button class="btn-sm" onclick="addCat('despesa')">Adicionar</button>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-title">Categorias de receita</div>
+        <div class="cat-list" id="cat-receita-list"></div>
+        <div class="inline-add">
+          <input id="new-cat-receita" placeholder="Nova categoria..." />
+          <button class="btn-sm" onclick="addCat('receita')">Adicionar</button>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-row">
+          <div><div class="settings-row-label">Exportar dados (CSV)</div><div class="settings-row-sub">Baixar todos os lançamentos</div></div>
+          <button class="btn-sm" onclick="exportCSV()"><i class="ti ti-download"></i> Exportar</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal Lançamento -->
+<div class="modal-backdrop" id="modal" style="display:none" onclick="closeModalBackdrop(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Novo lançamento</div>
+      <button class="btn-close" onclick="closeModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Tipo</label>
+      <div class="type-toggle">
+        <div class="type-btn active-receita" id="btn-receita" onclick="setTipo('receita')">+ Receita</div>
+        <div class="type-btn" id="btn-despesa" onclick="setTipo('despesa')">− Despesa</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Descrição</label>
+      <input class="form-input" id="m-desc" placeholder="Ex: Salário, Supermercado..." />
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Valor (R$)</label>
+        <input class="form-input" id="m-valor" type="number" step="0.01" min="0" placeholder="0,00" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Data</label>
+        <input class="form-input" id="m-data" type="date" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Categoria</label>
+      <select class="form-input" id="m-cat"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Observação (opcional)</label>
+      <input class="form-input" id="m-obs" placeholder="Detalhes adicionais..." />
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-save" onclick="saveLancamento()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<!-- Firebase -->
+<script type="module">
+import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut as fbSignOut, updateProfile } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js';
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy, setDoc, getDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
+
+// ── State ──
+let auth, db, currentUser, unsubscribe;
+let lancamentos = [];
+let editId = null;
+let currentTipo = 'receita';
+let userConfig = {
+  cats: {
+    despesa: ['Alimentação','Moradia','Transporte','Saúde','Lazer','Educação','Vestuário','Outros'],
+    receita: ['Salário','Freelance','Investimentos','Outros']
+  }
+};
+
+// ── Firebase init ──
+const SAVED_CONFIG = localStorage.getItem('fb_config');
+if (SAVED_CONFIG) {
+  try { initFirebase(JSON.parse(SAVED_CONFIG)); } catch(e) {}
+}
+
+function initFirebase(config) {
+  try {
+    const app = getApps().length ? getApp() : initializeApp(config);
+    auth = getAuth(app);
+    db = getFirestore(app);
+    localStorage.setItem('fb_config', JSON.stringify(config));
+    setupAuthListener();
+    return true;
+  } catch(e) {
+    console.error(e);
+    return false;
+  }
+}
+
+window.saveFirebaseConfig = function() {
+  const config = {
+    apiKey: document.getElementById('fb-apikey').value.trim(),
+    authDomain: document.getElementById('fb-authdomain').value.trim(),
+    projectId: document.getElementById('fb-projectid').value.trim(),
+  };
+  if (!config.apiKey || !config.projectId) {
+    document.getElementById('fb-status').textContent = 'Preencha pelo menos a API Key e o Project ID.';
+    return;
+  }
+  const ok = initFirebase(config);
+  document.getElementById('fb-status').textContent = ok ? '✅ Firebase conectado! Faça login acima.' : '❌ Erro ao conectar. Verifique as credenciais.';
+};
+
+function setupAuthListener() {
+  if (!auth) return;
+  onAuthStateChanged(auth, user => {
+    if (user) {
+      currentUser = user;
+      showApp(user);
+    } else {
+      currentUser = null;
+      showAuthScreen();
+    }
+  });
+}
+
+// ── Auth ──
+let authMode = 'login';
+window.switchAuthTab = function(mode) {
+  authMode = mode;
+  document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0&&mode==='login')||(i===1&&mode==='signup')));
+  document.getElementById('name-group').style.display = mode === 'signup' ? 'block' : 'none';
+  document.querySelector('.btn-primary').textContent = mode === 'login' ? 'Entrar' : 'Criar conta';
+  document.getElementById('auth-error').textContent = '';
+};
+
+window.handleAuth = async function() {
+  if (!auth) {
+    document.getElementById('auth-error').textContent = 'Configure o Firebase em Configurações primeiro.';
+    return;
+  }
+  const email = document.getElementById('auth-email').value;
+  const pass = document.getElementById('auth-password').value;
+  const name = document.getElementById('auth-name').value;
+  document.getElementById('auth-error').textContent = '';
+  try {
+    if (authMode === 'login') {
+      await signInWithEmailAndPassword(auth, email, pass);
+    } else {
+      const cred = await createUserWithEmailAndPassword(auth, email, pass);
+      if (name) await updateProfile(cred.user, { displayName: name });
+    }
+  } catch(e) {
+    const msgs = { 'auth/user-not-found':'E-mail não encontrado.','auth/wrong-password':'Senha incorreta.','auth/email-already-in-use':'E-mail já cadastrado.','auth/weak-password':'Senha muito curta (mín. 6 caracteres).','auth/invalid-email':'E-mail inválido.' };
+    document.getElementById('auth-error').textContent = msgs[e.code] || e.message;
+  }
+};
+
+window.signOut = async function() {
+  if (unsubscribe) unsubscribe();
+  await fbSignOut(auth);
+};
+
+// ── App Init ──
+async function showApp(user) {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('user-display').textContent = user.displayName || user.email.split('@')[0];
+  await loadUserConfig();
+  subscribeToLancamentos();
+  populateSelects();
+  renderCats();
+}
+
+function showAuthScreen() {
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+
+// ── Firestore ──
+async function loadUserConfig() {
+  try {
+    const snap = await getDoc(doc(db, 'users', currentUser.uid));
+    if (snap.exists()) userConfig = { ...userConfig, ...snap.data() };
+  } catch(e) {}
+}
+
+async function saveUserConfig() {
+  await setDoc(doc(db, 'users', currentUser.uid), userConfig, { merge: true });
+}
+
+function subscribeToLancamentos() {
+  if (unsubscribe) unsubscribe();
+  const q = query(collection(db, 'lancamentos'), where('uid', '==', currentUser.uid), orderBy('data', 'desc'));
+  unsubscribe = onSnapshot(q, snap => {
+    lancamentos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderAll();
+  });
+}
+
+// ── Navigation ──
+window.showPage = function(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelector(`[data-page="${page}"]`).classList.add('active');
+  if (page === 'graficos') renderGraficos();
+  if (page === 'resumo') renderResumo();
+};
+
+// ── Selects ──
+const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+function populateSelects() {
+  const now = new Date();
+  const years = [];
+  for (let y = now.getFullYear() - 2; y <= now.getFullYear() + 1; y++) years.push(y);
+
+  ['resumo-mes','filter-mes'].forEach(id => {
+    const el = document.getElementById(id);
+    el.innerHTML = MESES.map((m,i) => `<option value="${i+1}"${i+1===now.getMonth()+1?' selected':''}>${m}</option>`).join('');
+  });
+  ['resumo-ano','filter-ano','graf-ano'].forEach(id => {
+    const el = document.getElementById(id);
+    el.innerHTML = years.map(y => `<option value="${y}"${y===now.getFullYear()?' selected':''}>${y}</option>`).join('');
+  });
+}
+
+function renderAll() {
+  renderResumo();
+  renderLancamentos();
+  updateFilterCats();
+}
+
+// ── Resumo ──
+window.renderResumo = function() {
+  const mes = +document.getElementById('resumo-mes').value;
+  const ano = +document.getElementById('resumo-ano').value;
+  const itens = lancamentos.filter(l => {
+    const d = new Date(l.data + 'T00:00:00');
+    return d.getMonth()+1 === mes && d.getFullYear() === ano;
+  });
+  const receitas = itens.filter(l => l.tipo === 'receita').reduce((s,l) => s + l.valor, 0);
+  const despesas = itens.filter(l => l.tipo === 'despesa').reduce((s,l) => s + l.valor, 0);
+  const saldo = receitas - despesas;
+  document.getElementById('resumo-cards').innerHTML = `
+    <div class="card"><div class="card-label"><i class="ti ti-arrow-up" aria-hidden="true"></i>Receitas</div><div class="card-value positive">${fmt(receitas)}</div></div>
+    <div class="card"><div class="card-label"><i class="ti ti-arrow-down" aria-hidden="true"></i>Despesas</div><div class="card-value negative">${fmt(despesas)}</div></div>
+    <div class="card"><div class="card-label"><i class="ti ti-scale" aria-hidden="true"></i>Saldo</div><div class="card-value ${saldo>=0?'positive':'negative'}">${fmt(saldo)}</div></div>
+    <div class="card"><div class="card-label"><i class="ti ti-list-numbers" aria-hidden="true"></i>Lançamentos</div><div class="card-value neutral">${itens.length}</div></div>
+  `;
+  drawCatChart(itens);
+  drawBalanceChart(mes, ano);
+};
+
+function drawCatChart(itens) {
+  const despesas = itens.filter(l => l.tipo === 'despesa');
+  const catMap = {};
+  despesas.forEach(l => { catMap[l.categoria] = (catMap[l.categoria]||0) + l.valor; });
+  const labels = Object.keys(catMap);
+  const data = Object.values(catMap);
+  const el = document.getElementById('chart-cat');
+  if (window._chartCat) window._chartCat.destroy();
+  if (!labels.length) { el.parentElement.innerHTML = '<div class="chart-title">Despesas por categoria</div><div style="color:var(--text3);font-size:13px;padding:2rem 0;text-align:center">Nenhuma despesa</div>'; return; }
+  window._chartCat = new Chart(el, { type: 'doughnut', data: { labels, datasets: [{ data, backgroundColor: PALETTE }], }, options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 12 }, color: getComputedStyle(document.body).getPropertyValue('--text2') } } } } });
+}
+
+function drawBalanceChart(mes, ano) {
+  const labels = ['Receitas','Despesas'];
+  const itens = lancamentos.filter(l => { const d = new Date(l.data+'T00:00:00'); return d.getMonth()+1===mes&&d.getFullYear()===ano; });
+  const rec = itens.filter(l=>l.tipo==='receita').reduce((s,l)=>s+l.valor,0);
+  const desp = itens.filter(l=>l.tipo==='despesa').reduce((s,l)=>s+l.valor,0);
+  const el = document.getElementById('chart-balance');
+  if (window._chartBal) window._chartBal.destroy();
+  window._chartBal = new Chart(el, { type: 'bar', data: { labels, datasets: [{ data: [rec, desp], backgroundColor: ['#3b6d11','#a32d2d'] }] }, options: { plugins: { legend: { display: false } }, scales: { y: { ticks: { callback: v => 'R$'+v.toLocaleString('pt-BR'), font:{size:11} }, grid:{color:'rgba(0,0,0,0.05)'} }, x: { ticks:{font:{size:12}} } } } });
+}
+
+// ── Lançamentos ──
+window.renderLancamentos = function() {
+  const mes = +document.getElementById('filter-mes').value;
+  const ano = +document.getElementById('filter-ano').value;
+  const tipo = document.getElementById('filter-tipo').value;
+  const cat = document.getElementById('filter-cat').value;
+  let itens = lancamentos.filter(l => {
+    const d = new Date(l.data + 'T00:00:00');
+    return d.getMonth()+1 === mes && d.getFullYear() === ano;
+  });
+  if (tipo) itens = itens.filter(l => l.tipo === tipo);
+  if (cat) itens = itens.filter(l => l.categoria === cat);
+
+  const tbody = document.getElementById('lancamentos-tbody');
+  if (!itens.length) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><i class="ti ti-receipt-off"></i>Nenhum lançamento encontrado</div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = itens.map(l => `
+    <tr>
+      <td style="color:var(--text2);font-size:13px">${fmtDate(l.data)}</td>
+      <td><strong style="font-size:14px">${esc(l.descricao)}</strong>${l.obs?`<br><span style="font-size:12px;color:var(--text3)">${esc(l.obs)}</span>`:''}</td>
+      <td style="font-size:13px;color:var(--text2)">${esc(l.categoria)}</td>
+      <td><span class="badge badge-${l.tipo}">${l.tipo}</span></td>
+      <td style="text-align:right" class="td-valor ${l.tipo}">${l.tipo==='receita'?'+':'−'} ${fmt(l.valor)}</td>
+      <td><button class="btn-icon" onclick="deleteLancamento('${l.id}')" title="Excluir"><i class="ti ti-trash" style="font-size:15px"></i></button></td>
+    </tr>
+  `).join('');
+};
+
+window.deleteLancamento = async function(id) {
+  if (!confirm('Excluir este lançamento?')) return;
+  await deleteDoc(doc(db, 'lancamentos', id));
+};
+
+function updateFilterCats() {
+  const cats = [...new Set(lancamentos.map(l => l.categoria))].sort();
+  const el = document.getElementById('filter-cat');
+  const cur = el.value;
+  el.innerHTML = '<option value="">Todas categorias</option>' + cats.map(c => `<option value="${c}"${c===cur?' selected':''}>${c}</option>`).join('');
+}
+
+// ── Modal ──
+window.openModal = function() {
+  editId = null;
+  document.getElementById('modal-title').textContent = 'Novo lançamento';
+  document.getElementById('m-desc').value = '';
+  document.getElementById('m-valor').value = '';
+  document.getElementById('m-data').value = new Date().toISOString().slice(0,10);
+  document.getElementById('m-obs').value = '';
+  setTipo('despesa');
+  document.getElementById('modal').style.display = 'flex';
+};
+
+window.closeModal = function() { document.getElementById('modal').style.display = 'none'; };
+window.closeModalBackdrop = function(e) { if (e.target === document.getElementById('modal')) closeModal(); };
+
+window.setTipo = function(tipo) {
+  currentTipo = tipo;
+  document.getElementById('btn-receita').className = 'type-btn' + (tipo==='receita'?' active-receita':'');
+  document.getElementById('btn-despesa').className = 'type-btn' + (tipo==='despesa'?' active-despesa':'');
+  const cats = userConfig.cats[tipo] || [];
+  document.getElementById('m-cat').innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
+};
+
+window.saveLancamento = async function() {
+  const desc = document.getElementById('m-desc').value.trim();
+  const valor = parseFloat(document.getElementById('m-valor').value);
+  const data = document.getElementById('m-data').value;
+  const cat = document.getElementById('m-cat').value;
+  const obs = document.getElementById('m-obs').value.trim();
+  if (!desc || !valor || !data) { alert('Preencha descrição, valor e data.'); return; }
+  const payload = { uid: currentUser.uid, tipo: currentTipo, descricao: desc, valor, data, categoria: cat, obs, criadoEm: new Date().toISOString() };
+  await addDoc(collection(db, 'lancamentos'), payload);
+  closeModal();
+};
+
+// ── Gráficos ──
+window.renderGraficos = function() {
+  const ano = +document.getElementById('graf-ano').value;
+  const itensAno = lancamentos.filter(l => new Date(l.data+'T00:00:00').getFullYear()===ano);
+
+  const meses = Array.from({length:12},(_,i)=>i);
+  const recMes = meses.map(m => itensAno.filter(l=>l.tipo==='receita'&&new Date(l.data+'T00:00:00').getMonth()===m).reduce((s,l)=>s+l.valor,0));
+  const despMes = meses.map(m => itensAno.filter(l=>l.tipo==='despesa'&&new Date(l.data+'T00:00:00').getMonth()===m).reduce((s,l)=>s+l.valor,0));
+
+  // Evolução
+  const elEv = document.getElementById('chart-evolucao');
+  if (window._chartEv) window._chartEv.destroy();
+  window._chartEv = new Chart(elEv, { type:'bar', data:{ labels:MESES.map(m=>m.slice(0,3)), datasets:[{label:'Receitas',data:recMes,backgroundColor:'#3b6d11'},{label:'Despesas',data:despMes,backgroundColor:'#a32d2d'}] }, options:{ plugins:{legend:{labels:{font:{size:12}}}}, scales:{ y:{ticks:{callback:v=>'R$'+v.toLocaleString('pt-BR'),font:{size:11}},grid:{color:'rgba(0,0,0,0.05)'}},x:{ticks:{font:{size:11}}} } } });
+
+  // Saldo acumulado
+  let acc=0;
+  const saldos = meses.map(m => { acc += recMes[m]-despMes[m]; return acc; });
+  const elSal = document.getElementById('chart-saldo');
+  if (window._chartSal) window._chartSal.destroy();
+  window._chartSal = new Chart(elSal, { type:'line', data:{ labels:MESES.map(m=>m.slice(0,3)), datasets:[{label:'Saldo',data:saldos,fill:true,borderColor:'#185fa5',backgroundColor:'rgba(24,95,165,0.08)',tension:0.3,pointRadius:4}] }, options:{ plugins:{legend:{display:false}}, scales:{ y:{ticks:{callback:v=>'R$'+v.toLocaleString('pt-BR'),font:{size:11}},grid:{color:'rgba(0,0,0,0.05)'}},x:{ticks:{font:{size:11}}} } } });
+
+  // Donut categorias
+  const despAno = itensAno.filter(l=>l.tipo==='despesa');
+  const catMap={};
+  despAno.forEach(l=>{ catMap[l.categoria]=(catMap[l.categoria]||0)+l.valor; });
+  const elDon = document.getElementById('chart-donut');
+  if (window._chartDon) window._chartDon.destroy();
+  window._chartDon = new Chart(elDon, { type:'doughnut', data:{ labels:Object.keys(catMap), datasets:[{data:Object.values(catMap),backgroundColor:PALETTE}] }, options:{ plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:12}}}} } });
+
+  // Top 5
+  const sorted = [...itensAno].filter(l=>l.tipo==='despesa').sort((a,b)=>b.valor-a.valor).slice(0,5);
+  const elTop = document.getElementById('chart-top5');
+  if (window._chartTop) window._chartTop.destroy();
+  window._chartTop = new Chart(elTop, { type:'bar', indexAxis:'y', data:{ labels:sorted.map(l=>l.descricao.length>20?l.descricao.slice(0,18)+'…':l.descricao), datasets:[{data:sorted.map(l=>l.valor),backgroundColor:PALETTE}] }, options:{ plugins:{legend:{display:false}}, scales:{ x:{ticks:{callback:v=>'R$'+v.toLocaleString('pt-BR'),font:{size:11}}},y:{ticks:{font:{size:11}}} } } });
+};
+
+// ── Categorias ──
+window.renderCats = function() {
+  ['despesa','receita'].forEach(tipo => {
+    const cats = userConfig.cats[tipo]||[];
+    document.getElementById('cat-'+tipo+'-list').innerHTML = cats.map(c => `<div class="cat-tag">${esc(c)}<button onclick="removeCat('${tipo}','${c}')" title="Remover">×</button></div>`).join('');
+  });
+};
+
+window.addCat = async function(tipo) {
+  const el = document.getElementById('new-cat-'+tipo);
+  const val = el.value.trim();
+  if (!val) return;
+  if (!userConfig.cats[tipo].includes(val)) {
+    userConfig.cats[tipo].push(val);
+    await saveUserConfig();
+    renderCats();
+  }
+  el.value = '';
+};
+
+window.removeCat = async function(tipo, cat) {
+  userConfig.cats[tipo] = userConfig.cats[tipo].filter(c => c !== cat);
+  await saveUserConfig();
+  renderCats();
+};
+
+// ── Export CSV ──
+window.exportCSV = function() {
+  const header = 'Data,Descrição,Categoria,Tipo,Valor,Observação\n';
+  const rows = lancamentos.map(l => `${l.data},"${l.descricao}","${l.categoria}",${l.tipo},${l.valor},"${l.obs||''}"`).join('\n');
+  const blob = new Blob([header+rows], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'financas.csv'; a.click();
+};
+
+// ── Helpers ──
+const PALETTE = ['#3b6d11','#185fa5','#854f0b','#533ab7','#a32d2d','#0f6e56','#993556','#ba7517'];
+function fmt(v) { return 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtDate(s) { if (!s) return ''; const [y,m,d] = s.split('-'); return `${d}/${m}/${y}`; }
+function esc(s) { const el = document.createElement('div'); el.textContent = s; return el.innerHTML; }
+
+// Pre-fill firebase config if saved
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem('fb_config');
+  if (saved) {
+    try {
+      const c = JSON.parse(saved);
+      document.getElementById('fb-apikey').value = c.apiKey || '';
+      document.getElementById('fb-authdomain').value = c.authDomain || '';
+      document.getElementById('fb-projectid').value = c.projectId || '';
+    } catch(e) {}
+  }
+});
+</script>
+</body>
+</html>
