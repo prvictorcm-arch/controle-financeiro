@@ -411,10 +411,13 @@ let userConfig = {
 };
 
 // ── Firebase init ──
+const DEFAULT_CONFIG = {
+  apiKey: "AIzaSyDC0gJ4-mYslATlufvpkH6K84rnYPSASkU",
+  authDomain: "controle-financeiro-fbe99.firebaseapp.com",
+  projectId: "controle-financeiro-fbe99",
+};
 const SAVED_CONFIG = localStorage.getItem('fb_config');
-if (SAVED_CONFIG) {
-  try { initFirebase(JSON.parse(SAVED_CONFIG)); } catch(e) {}
-}
+try { initFirebase(SAVED_CONFIG ? JSON.parse(SAVED_CONFIG) : DEFAULT_CONFIG); } catch(e) {}
 
 function initFirebase(config) {
   try {
